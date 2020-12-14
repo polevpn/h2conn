@@ -50,9 +50,8 @@ func (c *Client) Connect(ctx context.Context, urlStr string) (*Conn, *http.Respo
 	if err != nil {
 		return nil, nil, err
 	}
-
 	// Create a connection
-	conn, ctx := newConn(req.Context(), nil, resp.Body, writer)
+	conn, ctx := newConn(req.Context(), nil, nil, resp.Body, writer)
 
 	// Apply the connection context on the request context
 	resp.Request = req.WithContext(ctx)

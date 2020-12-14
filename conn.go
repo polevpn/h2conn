@@ -11,9 +11,10 @@ import (
 // It implements the io.Reader/io.Writer/io.Closer to read/write or close the connection to the other side.
 // It also has a Send/Recv function to use channels to communicate with the other side.
 type Conn struct {
-	conn net.Conn
-	r    io.Reader
-	wc   io.WriteCloser
+	remoteAddr net.Addr
+	localAddr  net.Addr
+	r          io.Reader
+	wc         io.WriteCloser
 
 	cancel context.CancelFunc
 
@@ -21,13 +22,14 @@ type Conn struct {
 	rLock sync.Mutex
 }
 
-func newConn(ctx context.Context, conn net.Conn, r io.Reader, wc io.WriteCloser) (*Conn, context.Context) {
+func newConn(ctx context.Context, remoteAddr net.Addr, localAddr net.Addr, r io.Reader, wc io.WriteCloser) (*Conn, context.Context) {
 	ctx, cancel := context.WithCancel(ctx)
 	return &Conn{
-		conn:   conn,
-		r:      r,
-		wc:     wc,
-		cancel: cancel,
+		remoteAddr: remoteAddr,
+		localAddr:  localAddr,
+		r:          r,
+		wc:         wc,
+		cancel:     cancel,
 	}, ctx
 }
 
@@ -47,25 +49,19 @@ func (c *Conn) Read(data []byte) (int, error) {
 
 // LocalAddr returns the local network address.
 func (c *Conn) LocalAddr() net.Addr {
-	if c.conn != nil {
-		return c.conn.LocalAddr()
-	}
-	return &net.TCPAddr{
-		IP:   []byte{},
-		Port: 0,
-		Zone: "",
+	if c.localAddr != nil {
+		return c.localAddr
+	} else {
+		return &net.TCPAddr{IP: []byte{}, Port: 0, Zone: ""}
 	}
 }
 
 // RemoteAddr returns the remote network address.
 func (c *Conn) RemoteAddr() net.Addr {
-	if c.conn != nil {
-		return c.conn.RemoteAddr()
-	}
-	return &net.TCPAddr{
-		IP:   []byte{},
-		Port: 0,
-		Zone: "",
+	if c.remoteAddr != nil {
+		return c.remoteAddr
+	} else {
+		return &net.TCPAddr{IP: []byte{}, Port: 0, Zone: ""}
 	}
 }
 

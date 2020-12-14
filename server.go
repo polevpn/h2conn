@@ -1,9 +1,9 @@
 package h2conn
 
 import (
-	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 )
 
@@ -28,16 +28,8 @@ func (u *Server) Accept(w http.ResponseWriter, r *http.Request) (*Conn, error) {
 	if !ok {
 		return nil, ErrHTTP2NotSupported
 	}
-	h, ok := w.(http.Hijacker)
-	if !ok {
-		return nil, errors.New("response does not implement http.Hijacker")
-	}
-	netConn, _, err := h.Hijack()
-	if err != nil {
-		return nil, err
-	}
-
-	c, ctx := newConn(r.Context(), netConn, r.Body, &flushWrite{w: w, f: flusher})
+	remoteAddr, _ := net.ResolveTCPAddr("tcp", r.RemoteAddr)
+	c, ctx := newConn(r.Context(), remoteAddr, nil, r.Body, &flushWrite{w: w, f: flusher})
 
 	// Update the request context with the connection context.
 	// If the connection is closed by the server, it will also notify everything that waits on the request context.

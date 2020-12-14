@@ -1,11 +1,8 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/polevpn/h2conn"
 )
@@ -27,45 +24,24 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 	// Conn has a RemoteAddr property which helps us identify the client
-	log := logger{remoteAddr: r.RemoteAddr}
-
-	log.Printf("Joined")
+	log.Println(conn.RemoteAddr().String(), "Joined")
 	defer log.Printf("Left")
-
-	// Create a json encoder and decoder to send json messages over the connection
-	var (
-		in  = json.NewDecoder(conn)
-		out = json.NewEncoder(conn)
-	)
 
 	// Loop forever until the client hangs the connection, in which there will be an error
 	// in the decode or encode stages.
 	for {
-		var msg string
-		err = in.Decode(&msg)
+		buf := make([]byte, 4096)
+		n, err := conn.Read(buf)
 		if err != nil {
 			log.Printf("Failed decoding request: %v", err)
 			return
 		}
 
-		log.Printf("Got: %q", msg)
-
-		msg = strings.ToUpper(msg)
-
-		err = out.Encode(msg)
+		log.Printf("Got: %v", string(buf[:n]))
+		_, err = conn.Write(buf[:n])
 		if err != nil {
 			log.Printf("Failed encoding response: %v", err)
 			return
 		}
-
-		log.Printf("Sent: %q", msg)
 	}
-}
-
-type logger struct {
-	remoteAddr string
-}
-
-func (l logger) Printf(format string, args ...interface{}) {
-	log.Printf("[%s] %s", l.remoteAddr, fmt.Sprintf(format, args...))
 }
