@@ -2,6 +2,7 @@ package h2conn
 
 import (
 	"context"
+	"crypto/tls"
 	"io"
 	"net/http"
 
@@ -61,7 +62,7 @@ func (c *Client) Connect(ctx context.Context, urlStr string) (*Conn, *http.Respo
 
 var defaultClient = Client{
 	Method: http.MethodPost,
-	Client: &http.Client{Transport: &http2.Transport{}},
+	Client: &http.Client{Transport: &http2.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}},
 }
 
 // Connect establishes a full duplex communication with an HTTP2 server.

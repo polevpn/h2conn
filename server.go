@@ -5,6 +5,8 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"reflect"
+	"unsafe"
 )
 
 // ErrHTTP2NotSupported is returned by Accept if the client connection does not
@@ -21,6 +23,7 @@ type Server struct {
 // Accept is used on a server http.Handler to extract a full-duplex communication object with the client.
 // See h2conn.Accept documentation for more info.
 func (u *Server) Accept(w http.ResponseWriter, r *http.Request) (*Conn, error) {
+
 	if !r.ProtoAtLeast(2, 0) {
 		return nil, ErrHTTP2NotSupported
 	}
@@ -28,8 +31,20 @@ func (u *Server) Accept(w http.ResponseWriter, r *http.Request) (*Conn, error) {
 	if !ok {
 		return nil, ErrHTTP2NotSupported
 	}
-	remoteAddr, _ := net.ResolveTCPAddr("tcp", r.RemoteAddr)
-	c, ctx := newConn(r.Context(), remoteAddr, nil, r.Body, &flushWrite{w: w, f: flusher})
+
+	//get remoteaddr & localaddr by reflect from http.http2responseWriter in http.h2_bundle.go
+	conn := reflect.ValueOf(w).Elem().FieldByName("rws").Elem().FieldByName("conn").Elem().FieldByName("conn")
+	conn = reflect.NewAt(conn.Type(), unsafe.Pointer(conn.UnsafeAddr())).Elem()
+
+	m1 := conn.MethodByName("RemoteAddr")
+	m2 := conn.MethodByName("LocalAddr")
+
+	v1 := m1.Call([]reflect.Value{})[0].Interface()
+	remoteAddr := v1.(net.Addr)
+	v2 := m2.Call([]reflect.Value{})[0].Interface()
+	localAddr := v2.(net.Addr)
+
+	c, ctx := newConn(r.Context(), remoteAddr, localAddr, r.Body, &flushWrite{w: w, f: flusher})
 
 	// Update the request context with the connection context.
 	// If the connection is closed by the server, it will also notify everything that waits on the request context.
