@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/marcusolsson/tui-go"
-	"github.com/posener/h2conn"
+	"github.com/polevpn/h2conn"
 	"golang.org/x/net/http2"
 )
 

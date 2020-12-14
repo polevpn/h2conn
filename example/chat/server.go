@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/posener/h2conn"
+	"github.com/polevpn/h2conn"
 )
 
 type encoder interface {

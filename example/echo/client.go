@@ -12,7 +12,7 @@ import (
 	"os/signal"
 	"strings"
 
-	"github.com/posener/h2conn"
+	"github.com/polevpn/h2conn"
 	"golang.org/x/net/http2"
 )
 

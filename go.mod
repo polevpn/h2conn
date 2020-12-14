@@ -2,5 +2,4 @@ module github.com/polevpn/h2conn
 
 go 1.14
 
-require (
-)
+require golang.org/x/net v0.0.0-20201209123823-ac852fbbde11
