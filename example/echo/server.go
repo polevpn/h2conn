@@ -26,7 +26,6 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer conn.Close()
-
 	// Conn has a RemoteAddr property which helps us identify the client
 	log := logger{remoteAddr: r.RemoteAddr}
 
