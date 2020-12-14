@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/posener/h2conn"
+	"github.com/polevpn/h2conn"
 )
 
 func main() {
