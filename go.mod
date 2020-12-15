@@ -1,5 +1,7 @@
 module github.com/polevpn/h2conn
 
-go 1.14
+go 1.15
 
-require golang.org/x/net v0.0.0-20201209123823-ac852fbbde11
+require (
+	github.com/polevpn/xnet v1.0.0
+)

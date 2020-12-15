@@ -8,14 +8,12 @@ import (
 	"time"
 
 	"github.com/polevpn/h2conn"
-	"golang.org/x/net/http2"
+	"github.com/polevpn/xnet/http2"
 )
 
 const url = "https://localhost:8000"
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	// We use a client with custom http2.Transport since the server certificate is not signed by
 	// an authorized CA, and this is the way to ignore certificate verification errors.
@@ -24,8 +22,7 @@ func main() {
 			Transport: &http2.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}},
 		},
 	}
-
-	conn, resp, err := d.Connect(ctx, url)
+	conn, resp, err := d.Connect(context.Background(), url)
 	if err != nil {
 		log.Fatalf("Initiate conn: %s", err)
 	}

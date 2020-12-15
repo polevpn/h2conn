@@ -3,10 +3,11 @@ package h2conn
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"io"
 	"net/http"
 
-	"golang.org/x/net/http2"
+	"github.com/polevpn/xnet/http2"
 )
 
 // Client provides HTTP2 client side connection with special arguments
@@ -50,6 +51,10 @@ func (c *Client) Connect(ctx context.Context, urlStr string) (*Conn, *http.Respo
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, resp, errors.New("h2 handshake fail")
 	}
 	// Create a connection
 	conn, ctx := newConn(req.Context(), nil, nil, resp.Body, writer)
